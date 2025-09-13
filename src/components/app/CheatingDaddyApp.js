@@ -149,6 +149,13 @@ export class CheatingDaddyApp extends LitElement {
             padding: 14px;
         }
 
+        .quick-ask-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
         .quick-ask-input {
             width: 100%;
             border-radius: 10px;
@@ -164,6 +171,26 @@ export class CheatingDaddyApp extends LitElement {
             border-color: var(--focus-border-color);
             box-shadow: 0 0 0 3px var(--focus-box-shadow);
             background: var(--input-focus-background);
+        }
+
+        .mic-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: 1px solid var(--button-border);
+            background: var(--button-background);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .mic-button:hover { border-color: var(--start-button-hover-border); }
+        .mic-button.active {
+            border-color: var(--success-border, rgba(52, 211, 153, 0.4));
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
         }
     `;
 
@@ -554,7 +581,12 @@ export class CheatingDaddyApp extends LitElement {
                 ? html`
                       <div class="quick-ask-overlay" @keydown=${this.handleQuickAskKeydown.bind(this)}>
                           <div class="quick-ask-container">
-                              <input id="quickAskInput" class="quick-ask-input" type="text" placeholder="Ask anything… (Enter to send, Esc to close)" @keydown=${this.handleQuickAskKeydown.bind(this)} />
+                              <div class="quick-ask-row">
+                                  <input id="quickAskInput" class="quick-ask-input" type="text" placeholder="Ask anything… (Enter to send, Esc to close)" @keydown=${this.handleQuickAskKeydown.bind(this)} />
+                                  <button class="mic-button ${window.cheddar?.isMicOnlyActive && window.cheddar.isMicOnlyActive() ? 'active' : ''}" title="Toggle microphone" @click=${this.handleQuickAskMicToggle.bind(this)}>
+                                      🎤
+                                  </button>
+                              </div>
                           </div>
                       </div>
                   `
@@ -650,6 +682,41 @@ export class CheatingDaddyApp extends LitElement {
             e.preventDefault();
             this.handleQuickAskSubmit();
         }
+    }
+
+    async handleQuickAskMicToggle() {
+        // Ensure API key exists first
+        const apiKey = localStorage.getItem('apiKey')?.trim();
+        if (!apiKey) {
+            this._showQuickAsk = false;
+            this.currentView = 'main';
+            this.requestUpdate();
+            setTimeout(() => {
+                const mainView = this.shadowRoot?.querySelector('main-view');
+                if (mainView && mainView.triggerApiKeyError) mainView.triggerApiKeyError();
+            }, 0);
+            return;
+        }
+
+        // Ensure session exists without starting capture
+        if (!this.sessionActive) {
+            if (window.cheddar) {
+                await window.cheddar.initializeGemini(this.selectedProfile, this.selectedLanguage);
+            }
+            this.responses = [];
+            this.currentResponseIndex = -1;
+            this.startTime = Date.now();
+            this.sessionActive = true;
+        }
+
+        // Toggle mic-only capture
+        if (window.cheddar?.isMicOnlyActive && window.cheddar.isMicOnlyActive()) {
+            window.cheddar.stopMicOnlyCapture();
+        } else {
+            await window.cheddar.startMicOnlyCapture();
+            this.currentView = 'assistant';
+        }
+        this.requestUpdate();
     }
 }
 

@@ -19,6 +19,10 @@ let currentImageQuality = 'medium'; // Store current image quality for manual sc
 const isLinux = process.platform === 'linux';
 const isMacOS = process.platform === 'darwin';
 
+// Mic-only capture state
+let micOnlyStream = null;
+let micOnlyActive = false;
+
 // Token tracking system for rate limiting
 let tokenTracker = {
     tokens: [], // Array of {timestamp, count, type} objects
@@ -305,6 +309,82 @@ function setupLinuxMicProcessing(micStream) {
 
     // Store processor reference for cleanup
     audioProcessor = micProcessor;
+}
+
+// Start microphone-only capture (no screen). Works on all platforms with getUserMedia.
+async function startMicOnlyCapture() {
+    try {
+        if (micOnlyActive) return { success: true };
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                sampleRate: SAMPLE_RATE,
+                channelCount: 1,
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+            },
+            video: false,
+        });
+
+        micOnlyStream = stream;
+
+        // Create audio context and processor
+        audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+        const source = audioContext.createMediaStreamSource(stream);
+        audioProcessor = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
+
+        let localBuffer = [];
+        const samplesPerChunk = SAMPLE_RATE * AUDIO_CHUNK_DURATION;
+
+        audioProcessor.onaudioprocess = async e => {
+            const inputData = e.inputBuffer.getChannelData(0);
+            localBuffer.push(...inputData);
+
+            while (localBuffer.length >= samplesPerChunk) {
+                const chunk = localBuffer.splice(0, samplesPerChunk);
+                const pcmData16 = convertFloat32ToInt16(chunk);
+                const base64Data = arrayBufferToBase64(pcmData16.buffer);
+
+                await ipcRenderer.invoke('send-audio-content', {
+                    data: base64Data,
+                    mimeType: 'audio/pcm;rate=24000',
+                });
+            }
+        };
+
+        source.connect(audioProcessor);
+        audioProcessor.connect(audioContext.destination);
+
+        micOnlyActive = true;
+        tokenTracker.audioStartTime = Date.now();
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to start mic-only capture:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+function stopMicOnlyCapture() {
+    try {
+        if (audioProcessor) {
+            audioProcessor.disconnect();
+            audioProcessor = null;
+        }
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+        if (micOnlyStream) {
+            micOnlyStream.getTracks().forEach(t => t.stop());
+            micOnlyStream = null;
+        }
+        micOnlyActive = false;
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to stop mic-only capture:', error);
+        return { success: false, error: error.message };
+    }
 }
 
 function setupWindowsLoopbackProcessing() {
@@ -651,6 +731,8 @@ window.cheddar = {
     initializeGemini,
     startCapture,
     stopCapture,
+    startMicOnlyCapture,
+    stopMicOnlyCapture,
     sendTextMessage,
     handleShortcut,
     // Conversation history functions
@@ -665,4 +747,5 @@ window.cheddar = {
     isLinux: isLinux,
     isMacOS: isMacOS,
     e: cheddarElement,
+    isMicOnlyActive: () => micOnlyActive,
 };
