@@ -54,7 +54,7 @@ export class CheatingDaddyApp extends LitElement {
             background: var(--main-content-background);
             backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
             -webkit-backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--glass-glow, var(--shadow-lg));
             position: relative;
         }
 
@@ -64,18 +64,18 @@ export class CheatingDaddyApp extends LitElement {
             inset: 0;
             border-radius: inherit;
             pointer-events: none;
-            box-shadow: inset 0 0 0 1px var(--glass-stroke);
+            box-shadow: inset 0 0 0 1px var(--glass-stroke), inset 0 -30px 60px var(--glass-vignette);
         }
 
         .main-content::after {
             content: '';
             position: absolute;
-            left: -10%;
-            top: -40%;
-            width: 120%;
-            height: 150%;
-            background: radial-gradient(180px 120px at 10% 10%, var(--glass-inner-highlight), transparent 60%);
+            inset: 0;
+            background:
+                radial-gradient(200px 140px at 10% 10%, var(--glass-inner-highlight), transparent 60%),
+                radial-gradient(90% 160% at 50% -30%, var(--glass-edge-light), transparent 60%);
             pointer-events: none;
+            mix-blend-mode: screen;
         }
 
         .main-content.with-border {

@@ -18,7 +18,7 @@ export class AppHeader extends LitElement {
             border-radius: var(--border-radius);
             backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
             -webkit-backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--glass-glow, var(--shadow-md));
             position: relative;
             overflow: hidden;
         }
@@ -35,13 +35,20 @@ export class AppHeader extends LitElement {
         .header::after {
             content: '';
             position: absolute;
-            left: -10%;
-            top: -80%;
-            width: 120%;
-            height: 180%;
-            background: radial-gradient(120px 80px at 20% 20%, var(--glass-top-sheen), transparent 60%);
+            inset: 0;
+            background:
+                radial-gradient(160px 110px at 18% 12%, var(--glass-top-sheen), transparent 60%),
+                linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.02) 15%, transparent 30%),
+                radial-gradient(80% 140% at 50% -30%, var(--glass-edge-light), transparent 60%);
             pointer-events: none;
         }
+
+        /* Fine noise for glass realism */
+        .header::marker { display: none; }
+        .header::part(noise) { display: none; }
+        .header::before,
+        .header::after { filter: none; }
+        .header::after { mix-blend-mode: screen; }
 
         .header-title {
             flex: 1;

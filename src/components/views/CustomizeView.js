@@ -37,6 +37,7 @@ export class CustomizeView extends LitElement {
             -webkit-backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
             position: relative;
             overflow: hidden;
+            box-shadow: var(--glass-glow, var(--shadow-md));
         }
 
         .settings-section::before {
@@ -45,18 +46,18 @@ export class CustomizeView extends LitElement {
             inset: 0;
             border-radius: inherit;
             pointer-events: none;
-            box-shadow: inset 0 0 0 1px var(--glass-stroke);
+            box-shadow: inset 0 0 0 1px var(--glass-stroke), inset 0 -20px 40px var(--glass-vignette);
         }
 
         .settings-section::after {
             content: '';
             position: absolute;
-            left: -10%;
-            top: -60%;
-            width: 120%;
-            height: 160%;
-            background: radial-gradient(140px 90px at 15% 15%, var(--glass-inner-highlight), transparent 60%);
+            inset: 0;
+            background:
+                radial-gradient(160px 110px at 15% 15%, var(--glass-inner-highlight), transparent 60%),
+                radial-gradient(80% 140% at 50% -30%, var(--glass-edge-light), transparent 60%);
             pointer-events: none;
+            mix-blend-mode: screen;
         }
 
         .section-title {
