@@ -47,10 +47,35 @@ export class CheatingDaddyApp extends LitElement {
             flex: 1;
             padding: var(--main-content-padding);
             overflow-y: auto;
+            overflow-x: hidden;
             margin-top: var(--main-content-margin-top);
             border-radius: var(--content-border-radius);
             transition: all 0.15s ease-out;
             background: var(--main-content-background);
+            backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            -webkit-backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            box-shadow: var(--shadow-lg);
+            position: relative;
+        }
+
+        .main-content::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px var(--glass-stroke);
+        }
+
+        .main-content::after {
+            content: '';
+            position: absolute;
+            left: -10%;
+            top: -40%;
+            width: 120%;
+            height: 150%;
+            background: radial-gradient(180px 120px at 10% 10%, var(--glass-inner-highlight), transparent 60%);
+            pointer-events: none;
         }
 
         .main-content.with-border {
@@ -58,7 +83,7 @@ export class CheatingDaddyApp extends LitElement {
         }
 
         .main-content.assistant-view {
-            padding: 10px;
+            padding: 10px 12px;
             border: none;
         }
 

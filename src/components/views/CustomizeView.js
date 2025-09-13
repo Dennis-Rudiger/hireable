@@ -18,6 +18,8 @@ export class CustomizeView extends LitElement {
             padding: 12px;
             margin: 0 auto;
             max-width: 700px;
+            /* Allow content to grow; scrolling is handled by parent .main-content */
+            overflow: visible;
         }
 
         .settings-container {
@@ -27,11 +29,34 @@ export class CustomizeView extends LitElement {
         }
 
         .settings-section {
-            background: var(--card-background, rgba(255, 255, 255, 0.04));
-            border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
-            border-radius: 6px;
+            background: var(--card-background, rgba(12, 12, 14, 0.35));
+            border: 1px solid var(--card-border, rgba(255, 255, 255, 0.12));
+            border-radius: 8px;
             padding: 16px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            -webkit-backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .settings-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px var(--glass-stroke);
+        }
+
+        .settings-section::after {
+            content: '';
+            position: absolute;
+            left: -10%;
+            top: -60%;
+            width: 120%;
+            height: 160%;
+            background: radial-gradient(140px 90px at 15% 15%, var(--glass-inner-highlight), transparent 60%);
+            pointer-events: none;
         }
 
         .section-title {
@@ -415,6 +440,7 @@ export class CustomizeView extends LitElement {
         onLayoutModeChange: { type: Function },
         advancedMode: { type: Boolean },
         onAdvancedModeChange: { type: Function },
+        contentProtection: { type: Boolean },
     };
 
     constructor() {
@@ -444,11 +470,15 @@ export class CustomizeView extends LitElement {
         // Font size default (in pixels)
         this.fontSize = 20;
 
+    // Content protection default
+    this.contentProtection = true;
+
         this.loadKeybinds();
         this.loadGoogleSearchSettings();
         this.loadAdvancedModeSettings();
         this.loadBackgroundTransparency();
         this.loadFontSize();
+        this.loadContentProtection();
     }
 
     connectedCallback() {
@@ -787,6 +817,31 @@ export class CustomizeView extends LitElement {
         }
     }
 
+    loadContentProtection() {
+        const stored = localStorage.getItem('contentProtection');
+        if (stored !== null) {
+            this.contentProtection = stored === 'true';
+        }
+    }
+
+    async handleContentProtectionChange(e) {
+        this.contentProtection = e.target.checked;
+        try {
+            localStorage.setItem('contentProtection', this.contentProtection.toString());
+        } catch (err) {
+            // ignore
+        }
+        if (window.require) {
+            try {
+                const { ipcRenderer } = window.require('electron');
+                await ipcRenderer.invoke('update-content-protection');
+            } catch (error) {
+                console.error('Failed to notify main process:', error);
+            }
+        }
+        this.requestUpdate();
+    }
+
     loadAdvancedModeSettings() {
         const advancedMode = localStorage.getItem('advancedMode');
         if (advancedMode !== null) {
@@ -1005,6 +1060,23 @@ export class CustomizeView extends LitElement {
                                 <div class="form-description">
                                     Adjust the font size of AI response text in the assistant view
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">Content Protection</label>
+                            <div class="checkbox-group">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox-input"
+                                    id="content-protection"
+                                    .checked=${this.contentProtection}
+                                    @change=${this.handleContentProtectionChange}
+                                />
+                                <label for="content-protection" class="checkbox-label"> Prevent screen readers and screenshots of this window </label>
+                            </div>
+                            <div class="form-description">
+                                When enabled, the app tells the OS to protect the window content where supported.
                             </div>
                         </div>
 

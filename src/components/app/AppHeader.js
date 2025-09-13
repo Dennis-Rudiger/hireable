@@ -16,6 +16,31 @@ export class AppHeader extends LitElement {
             border: 1px solid var(--border-color);
             background: var(--header-background);
             border-radius: var(--border-radius);
+            backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            -webkit-backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px var(--glass-stroke);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            left: -10%;
+            top: -80%;
+            width: 120%;
+            height: 180%;
+            background: radial-gradient(120px 80px at 20% 20%, var(--glass-top-sheen), transparent 60%);
+            pointer-events: none;
         }
 
         .header-title {
@@ -101,6 +126,7 @@ export class AppHeader extends LitElement {
         isClickThrough: { type: Boolean, reflect: true },
         advancedMode: { type: Boolean },
         onAdvancedClick: { type: Function },
+        contentProtection: { type: Boolean },
     };
 
     constructor() {
@@ -118,11 +144,19 @@ export class AppHeader extends LitElement {
         this.advancedMode = false;
         this.onAdvancedClick = () => {};
         this._timerInterval = null;
+        this.contentProtection = true;
     }
 
     connectedCallback() {
         super.connectedCallback();
         this._startTimer();
+        // Initialize content protection state from localStorage
+        try {
+            const stored = localStorage.getItem('contentProtection');
+            if (stored !== null) this.contentProtection = stored === 'true';
+        } catch (e) {
+            // ignore storage read errors
+        }
     }
 
     disconnectedCallback() {
@@ -298,7 +332,7 @@ export class AppHeader extends LitElement {
                                         </button>
                                     `
                                   : ''}
-                              <button class="icon-button" @click=${this.onCustomizeClick}>
+                              <button class="icon-button" @click=${this.onCustomizeClick} title="Customize">
                                   <?xml version="1.0" encoding="UTF-8"?><svg
                                       width="24px"
                                       height="24px"
@@ -324,7 +358,7 @@ export class AppHeader extends LitElement {
                                       ></path>
                                   </svg>
                               </button>
-                              <button class="icon-button" @click=${this.onHelpClick}>
+                              <button class="icon-button" @click=${this.onHelpClick} title="Help">
                                   <?xml version="1.0" encoding="UTF-8"?><svg
                                       width="24px"
                                       height="24px"
@@ -355,6 +389,20 @@ export class AppHeader extends LitElement {
                                           stroke-linecap="round"
                                           stroke-linejoin="round"
                                       ></path>
+                                  </svg>
+                              </button>
+                              <button class="icon-button" @click=${() => this.toggleContentProtection()} title=${this.contentProtection ? 'Disable content protection' : 'Enable content protection'}>
+                                  <?xml version="1.0" encoding="UTF-8"?><svg
+                                      width="24px"
+                                      height="24px"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      color="currentColor"
+                                      stroke-width="1.7"
+                                  >
+                                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                                      <circle cx="12" cy="12" r="3.5" stroke="currentColor" />
                                   </svg>
                               </button>
                           `
@@ -409,6 +457,28 @@ export class AppHeader extends LitElement {
                 </div>
             </div>
         `;
+    }
+
+    async toggleContentProtection() {
+        try {
+            // Flip local state
+            this.contentProtection = !this.contentProtection;
+            // Persist to localStorage via renderer context
+            if (typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem('contentProtection', this.contentProtection.toString());
+                } catch (e) {
+                    // ignore storage errors
+                }
+            }
+            // Notify main process to apply
+            if (window.require) {
+                const { ipcRenderer } = window.require('electron');
+                await ipcRenderer.invoke('update-content-protection');
+            }
+        } catch (err) {
+            console.error('Failed to toggle content protection', err);
+        }
     }
 }
 

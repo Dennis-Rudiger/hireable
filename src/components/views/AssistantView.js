@@ -94,6 +94,7 @@ export class AssistantView extends LitElement {
             padding: 1em;
             overflow-x: auto;
             margin: 1em 0;
+            box-shadow: var(--shadow-md);
         }
 
         .response-container pre code {
@@ -179,6 +180,7 @@ export class AssistantView extends LitElement {
             padding: 10px 14px;
             border-radius: 8px;
             font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
         .text-input-container input:focus {
@@ -198,6 +200,7 @@ export class AssistantView extends LitElement {
             border: none;
             padding: 0;
             border-radius: 100px;
+            transition: background 0.2s ease;
         }
 
         .text-input-container button:hover {
@@ -219,7 +222,7 @@ export class AssistantView extends LitElement {
         }
 
         .nav-button:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .nav-button:disabled {

@@ -88,6 +88,7 @@ export class MainView extends LitElement {
         .start-button:hover {
             background: var(--start-button-hover-background);
             border-color: var(--start-button-hover-border);
+            filter: saturate(1.1);
         }
 
         .start-button.initializing {
@@ -109,6 +110,7 @@ export class MainView extends LitElement {
         .shortcut-icons svg {
             width: 14px;
             height: 14px;
+            opacity: 0.9;
         }
 
         .shortcut-icons svg path {
