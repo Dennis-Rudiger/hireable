@@ -1,8 +1,8 @@
 {
-    "name": "cheating-daddy",
-    "productName": "cheating-daddy",
+    "name": "hireable",
+    "productName": "Hireable",
     "version": "0.4.0",
-    "description": "cheating daddy",
+    "description": "Hireable AI assistant",
     "main": "src/index.js",
     "scripts": {
         "start": "electron-forge start",
@@ -13,11 +13,11 @@
         "smoke:live": "node scripts/live-smoke.js"
     },
     "keywords": [
-        "cheating daddy",
-        "cheating daddy ai",
-        "cheating daddy ai assistant",
-        "cheating daddy ai assistant for interviews",
-        "cheating daddy ai assistant for interviews"
+        "hireable",
+        "hireable ai",
+        "hireable ai assistant",
+        "interview ai assistant",
+        "meeting ai assistant"
     ],
     "author": {
         "name": "sohzm",
