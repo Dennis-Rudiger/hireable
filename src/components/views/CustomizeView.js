@@ -606,6 +606,7 @@ export class CustomizeView extends LitElement {
             moveRight: isMac ? 'Alt+Right' : 'Ctrl+Right',
             toggleVisibility: isMac ? 'Cmd+\\' : 'Ctrl+\\',
             toggleClickThrough: isMac ? 'Cmd+M' : 'Ctrl+M',
+            quickAsk: isMac ? 'Cmd+K' : 'Ctrl+K',
             nextStep: isMac ? 'Cmd+Enter' : 'Ctrl+Enter',
             previousResponse: isMac ? 'Cmd+[' : 'Ctrl+[',
             nextResponse: isMac ? 'Cmd+]' : 'Ctrl+]',
@@ -682,6 +683,11 @@ export class CustomizeView extends LitElement {
                 key: 'toggleClickThrough',
                 name: 'Toggle Click-through Mode',
                 description: 'Enable/disable click-through functionality',
+            },
+            {
+                key: 'quickAsk',
+                name: 'Quick Ask',
+                description: 'Open a small input to ask the assistant without starting capture',
             },
             {
                 key: 'nextStep',

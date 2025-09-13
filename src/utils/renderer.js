@@ -647,6 +647,7 @@ function handleShortcut(shortcutKey) {
 }
 
 window.cheddar = {
+    ...(window.cheddar || {}),
     initializeGemini,
     startCapture,
     stopCapture,

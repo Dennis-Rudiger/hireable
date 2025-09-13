@@ -247,6 +247,7 @@ export class HelpView extends LitElement {
             moveRight: isMac ? 'Alt+Right' : 'Ctrl+Right',
             toggleVisibility: isMac ? 'Cmd+\\' : 'Ctrl+\\',
             toggleClickThrough: isMac ? 'Cmd+M' : 'Ctrl+M',
+            quickAsk: isMac ? 'Cmd+K' : 'Ctrl+K',
             nextStep: isMac ? 'Cmd+Enter' : 'Ctrl+Enter',
             previousResponse: isMac ? 'Cmd+[' : 'Ctrl+[',
             nextResponse: isMac ? 'Cmd+]' : 'Ctrl+]',
@@ -337,6 +338,10 @@ export class HelpView extends LitElement {
 
                         <div class="keyboard-group">
                             <div class="keyboard-group-title">AI Actions</div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-description">Quick Ask</span>
+                                <div class="shortcut-keys">${this.formatKeybind(this.keybinds.quickAsk)}</div>
+                            </div>
                             <div class="shortcut-item">
                                 <span class="shortcut-description">Take screenshot and ask for next step</span>
                                 <div class="shortcut-keys">${this.formatKeybind(this.keybinds.nextStep)}</div>

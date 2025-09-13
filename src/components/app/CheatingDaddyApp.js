@@ -125,6 +125,46 @@ export class CheatingDaddyApp extends LitElement {
         ::-webkit-scrollbar-thumb:hover {
             background: var(--scrollbar-thumb-hover);
         }
+
+        /* Quick Ask overlay */
+        .quick-ask-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 10000;
+            -webkit-app-region: no-drag;
+        }
+
+        .quick-ask-container {
+            width: min(720px, 92vw);
+            border-radius: 12px;
+            background: var(--main-content-background);
+            backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            -webkit-backdrop-filter: saturate(var(--glass-saturation)) blur(var(--glass-blur));
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--glass-stroke);
+            padding: 14px;
+        }
+
+        .quick-ask-input {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--button-border);
+            padding: 14px 16px;
+            background: var(--input-background);
+            color: var(--text-color);
+            font-size: 15px;
+        }
+
+        .quick-ask-input:focus {
+            outline: none;
+            border-color: var(--focus-border-color);
+            box-shadow: 0 0 0 3px var(--focus-box-shadow);
+            background: var(--input-focus-background);
+        }
     `;
 
     static properties = {
@@ -143,6 +183,7 @@ export class CheatingDaddyApp extends LitElement {
         advancedMode: { type: Boolean },
         _viewInstances: { type: Object, state: true },
         _isClickThrough: { state: true },
+        _showQuickAsk: { state: true },
     };
 
     constructor() {
@@ -164,6 +205,7 @@ export class CheatingDaddyApp extends LitElement {
         this.currentResponseIndex = -1;
         this._viewInstances = new Map();
         this._isClickThrough = false;
+    this._showQuickAsk = false;
 
         // Apply layout mode to document root
         this.updateLayoutMode();
@@ -213,6 +255,11 @@ export class CheatingDaddyApp extends LitElement {
 
         window.cheddar.getLayoutMode = () => {
             return this.layoutMode;
+        };
+
+        // Toggle Quick Ask overlay from global shortcut
+        window.cheddar.toggleQuickAsk = () => {
+            this.toggleQuickAsk();
         };
     }
 
@@ -305,6 +352,7 @@ export class CheatingDaddyApp extends LitElement {
         this.responses = [];
         this.currentResponseIndex = -1;
         this.startTime = Date.now();
+        this.sessionActive = true;
         this.currentView = 'assistant';
     }
 
@@ -502,6 +550,15 @@ export class CheatingDaddyApp extends LitElement {
                     </div>
                 </div>
             </div>
+            ${this._showQuickAsk
+                ? html`
+                      <div class="quick-ask-overlay" @keydown=${this.handleQuickAskKeydown.bind(this)}>
+                          <div class="quick-ask-container">
+                              <input id="quickAskInput" class="quick-ask-input" type="text" placeholder="Ask anything… (Enter to send, Esc to close)" @keydown=${this.handleQuickAskKeydown.bind(this)} />
+                          </div>
+                      </div>
+                  `
+                : ''}
         `;
     }
 
@@ -530,6 +587,69 @@ export class CheatingDaddyApp extends LitElement {
         }
 
         this.requestUpdate();
+    }
+
+    // Quick Ask overlay controls
+    toggleQuickAsk() {
+        this._showQuickAsk = !this._showQuickAsk;
+        this.requestUpdate();
+        if (this._showQuickAsk) {
+            // Focus input after render
+            setTimeout(() => {
+                const input = this.renderRoot?.querySelector('#quickAskInput');
+                input?.focus();
+            }, 0);
+        }
+    }
+
+    async handleQuickAskSubmit() {
+        const input = this.renderRoot?.querySelector('#quickAskInput');
+        const message = input?.value?.trim();
+        if (!message) return;
+
+        // Ensure API key exists; if not, route user to main view to set it
+        const apiKey = localStorage.getItem('apiKey')?.trim();
+        if (!apiKey) {
+            this._showQuickAsk = false;
+            this.currentView = 'main';
+            this.requestUpdate();
+            setTimeout(() => {
+                const mainView = this.shadowRoot?.querySelector('main-view');
+                if (mainView && mainView.triggerApiKeyError) mainView.triggerApiKeyError();
+            }, 0);
+            return;
+        }
+
+        // Ensure session exists (text-only OK); don't start capture
+        if (!this.sessionActive) {
+            if (window.cheddar) {
+                await window.cheddar.initializeGemini(this.selectedProfile, this.selectedLanguage);
+            }
+            this.responses = [];
+            this.currentResponseIndex = -1;
+            this.startTime = Date.now();
+            this.sessionActive = true;
+        }
+
+        // Switch to assistant view to show response
+        this.currentView = 'assistant';
+        await this.handleSendText(message);
+        this._showQuickAsk = false;
+        input.value = '';
+        this.requestUpdate();
+    }
+
+    handleQuickAskKeydown(e) {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            this._showQuickAsk = false;
+            this.requestUpdate();
+            return;
+        }
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.handleQuickAskSubmit();
+        }
     }
 }
 

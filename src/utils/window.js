@@ -137,6 +137,7 @@ function getDefaultKeybinds() {
         moveRight: isMac ? 'Alt+Right' : 'Ctrl+Right',
         toggleVisibility: isMac ? 'Cmd+\\' : 'Ctrl+\\',
         toggleClickThrough: isMac ? 'Cmd+M' : 'Ctrl+M',
+        quickAsk: isMac ? 'Cmd+K' : 'Ctrl+K',
         nextStep: isMac ? 'Cmd+Enter' : 'Ctrl+Enter',
         previousResponse: isMac ? 'Cmd+[' : 'Ctrl+[',
         nextResponse: isMac ? 'Cmd+]' : 'Ctrl+]',
@@ -225,6 +226,37 @@ function updateGlobalShortcuts(keybinds, mainWindow, sendToRenderer, geminiSessi
             console.log(`Registered toggleClickThrough: ${keybinds.toggleClickThrough}`);
         } catch (error) {
             console.error(`Failed to register toggleClickThrough (${keybinds.toggleClickThrough}):`, error);
+        }
+    }
+
+    // Register Quick Ask shortcut
+    if (keybinds.quickAsk) {
+        try {
+            globalShortcut.register(keybinds.quickAsk, () => {
+                try {
+                    // Ensure window is interactive (disable click-through if enabled)
+                    if (mouseEventsIgnored) {
+                        mouseEventsIgnored = false;
+                        mainWindow.setIgnoreMouseEvents(false);
+                        mainWindow.webContents.send('click-through-toggled', false);
+                    }
+                    if (!mainWindow.isVisible()) {
+                        mainWindow.showInactive();
+                    }
+                    mainWindow.webContents.executeJavaScript(`
+                        if (window.cheddar && window.cheddar.toggleQuickAsk) {
+                            window.cheddar.toggleQuickAsk();
+                        } else {
+                            console.log('toggleQuickAsk function not available');
+                        }
+                    `);
+                } catch (error) {
+                    console.error('Error toggling Quick Ask overlay:', error);
+                }
+            });
+            console.log(`Registered quickAsk: ${keybinds.quickAsk}`);
+        } catch (error) {
+            console.error(`Failed to register quickAsk (${keybinds.quickAsk}):`, error);
         }
     }
 
