@@ -35,6 +35,7 @@ module.exports = {
                 shortcutName: 'Hireable',
                 createDesktopShortcut: true,
                 createStartMenuShortcut: true,
+                setupIcon: 'src/assets/logo.ico',
             },
         },
         {
@@ -48,6 +49,19 @@ module.exports = {
         {
             name: '@electron-forge/maker-rpm',
             config: {},
+        },
+    ],
+    publishers: [
+        {
+            name: '@electron-forge/publisher-github',
+            config: {
+                repository: {
+                    owner: 'Dennis-Rudiger',
+                    name: 'hireable',
+                },
+                draft: true,
+                prerelease: false,
+            },
         },
     ],
     plugins: [

@@ -10,12 +10,12 @@ const RESIZE_ANIMATION_DURATION = 500; // milliseconds
 
 function ensureDataDirectories() {
     const homeDir = os.homedir();
-    const cheddarDir = path.join(homeDir, 'cheddar');
-    const dataDir = path.join(cheddarDir, 'data');
+    const appDir = path.join(homeDir, 'hireable');
+    const dataDir = path.join(appDir, 'data');
     const imageDir = path.join(dataDir, 'image');
     const audioDir = path.join(dataDir, 'audio');
 
-    [cheddarDir, dataDir, imageDir, audioDir].forEach(dir => {
+    [appDir, dataDir, imageDir, audioDir].forEach(dir => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }

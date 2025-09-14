@@ -23,6 +23,12 @@ A real-time AI assistant that provides contextual help during video calls, inter
 2. **Install Dependencies**: `npm install`
 3. **Run the App**: `npm start`
 
+## Package & Publish
+
+- Package locally: `npm run make`
+- Publish a draft release to GitHub: set GITHUB_TOKEN and run `npm run publish`
+- CI release: push a tag like `v0.4.0` to trigger GitHub Actions and upload artifacts as a draft release
+
 ## Usage
 
 1. Enter your Gemini API key in the main window

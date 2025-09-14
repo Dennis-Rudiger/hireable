@@ -15,6 +15,11 @@ function createMainWindow() {
 }
 
 app.whenReady().then(() => {
+    // Set application name and AppUserModelID for Windows taskbar and notifications
+    app.setName('Hireable');
+    if (process.platform === 'win32') {
+        app.setAppUserModelId('com.dennisrudiger.hireable');
+    }
     createMainWindow();
     setupGeminiIpcHandlers(geminiSessionRef);
     setupGeneralIpcHandlers();
