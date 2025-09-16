@@ -8,15 +8,17 @@ module.exports = {
     name: 'Hireable',
         icon: 'src/assets/logo',
         // Exclude dev-only and non-runtime files from the packaged app
-        ignore: [
-            /^\/website($|\/)/,
-            /^\/scripts($|\/)/,
-            /^\/\.github($|\/)/,
-            /^\/\.git($|\/)/,
-            /^\/README\.md$/,
-            /^\/entitlements\.plist$/,
-            /^\/\.prettier.*$/,
-        ],
+        ignore: (file) => {
+            const path = require('path');
+            const rel = path.relative(__dirname, file).replace(/\\/g, '/');
+            // Block these directories entirely
+            if (rel === 'website' || rel.startsWith('website/')) return true;
+            if (rel === 'scripts' || rel.startsWith('scripts/')) return true;
+            if (rel === '.git' || rel.startsWith('.git/')) return true;
+            if (rel === '.github' || rel.startsWith('.github/')) return true;
+            // Otherwise include
+            return false;
+        },
         // use `security find-identity -v -p codesigning` to find your identity
         // for macos signing
         // also fuck apple
@@ -69,7 +71,7 @@ module.exports = {
                     owner: 'Dennis-Rudiger',
                     name: 'hireable',
                 },
-                draft: true,
+                draft: false,
                 prerelease: false,
             },
         },

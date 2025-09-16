@@ -1,5 +1,12 @@
 export default async function handler(req, res) {
   try {
+    // If an explicit asset URL is configured, redirect immediately
+    const override = process.env.NEXT_PUBLIC_DOWNLOAD_EXE_URL || process.env.DOWNLOAD_EXE_URL;
+    if (override && typeof override === 'string') {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.redirect(302, override);
+    }
+
     const releasesRes = await fetch('https://api.github.com/repos/Dennis-Rudiger/hireable/releases');
     if (!releasesRes.ok) {
       return res.status(502).json({ error: 'Failed to fetch releases from GitHub' });
@@ -19,6 +26,16 @@ export default async function handler(req, res) {
     if (!asset) asset = findAsset(sorted);
 
     if (!asset) {
+      // Fallback: query the /releases/latest endpoint as a secondary source
+      const latestRes = await fetch('https://api.github.com/repos/Dennis-Rudiger/hireable/releases/latest');
+      if (latestRes.ok) {
+        const latest = await latestRes.json();
+        const latestAsset = (latest.assets || []).find(a => a.name && a.name.endsWith('.exe'));
+        if (latestAsset) {
+          res.setHeader('Cache-Control', 'no-store');
+          return res.redirect(302, latestAsset.browser_download_url);
+        }
+      }
       return res.status(404).json({ error: 'No Windows .exe release asset found' });
     }
 
