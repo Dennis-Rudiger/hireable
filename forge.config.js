@@ -7,6 +7,16 @@ module.exports = {
         extraResource: ['./src/assets/SystemAudioDump'],
     name: 'Hireable',
         icon: 'src/assets/logo',
+        // Exclude dev-only and non-runtime files from the packaged app
+        ignore: [
+            /^\/website($|\/)/,
+            /^\/scripts($|\/)/,
+            /^\/\.github($|\/)/,
+            /^\/\.git($|\/)/,
+            /^\/README\.md$/,
+            /^\/entitlements\.plist$/,
+            /^\/\.prettier.*$/,
+        ],
         // use `security find-identity -v -p codesigning` to find your identity
         // for macos signing
         // also fuck apple

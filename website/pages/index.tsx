@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 export default function Home() {
   const [downloading, setDownloading] = useState(false);
+  const paypalUrl = process.env.NEXT_PUBLIC_PAYPAL_URL || 'https://paypal.me/dennisrudiger';
 
   const handleDownload = () => {
     setDownloading(true);
@@ -24,6 +25,7 @@ export default function Home() {
           <div className="logo">Hireable</div>
           <div className="links">
             <Link href="https://github.com/Dennis-Rudiger/hireable" target="_blank" rel="noreferrer">GitHub</Link>
+            <Link href={paypalUrl} target="_blank" rel="noreferrer">Donate via PayPal</Link>
             <a href="#features">Features</a>
             <a href="#faq">FAQ</a>
           </div>
@@ -42,6 +44,9 @@ export default function Home() {
               </button>
               <Link className="ghost" href="https://github.com/Dennis-Rudiger/hireable" target="_blank" rel="noreferrer">
                 View on GitHub →
+              </Link>
+              <Link className="ghost" href={paypalUrl} target="_blank" rel="noreferrer" aria-label="Donate via PayPal to support Hireable">
+                Donate via PayPal
               </Link>
             </div>
             <div className="badges">
@@ -96,6 +101,7 @@ export default function Home() {
         <footer className="footer">
           <span>© {new Date().getFullYear()} Hireable</span>
           <Link href="https://github.com/Dennis-Rudiger/hireable" target="_blank" rel="noreferrer">GitHub</Link>
+          <Link href={paypalUrl} target="_blank" rel="noreferrer">Donate via PayPal</Link>
         </footer>
       </main>
 
