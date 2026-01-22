@@ -227,7 +227,7 @@ async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'int
 
     try {
         const session = await client.live.connect({
-            model: 'gemini-live-2.5-flash-preview',
+            model: 'gemini-2.5-flash-native-audio-preview-12-2025',
             callbacks: {
                 onopen: function () {
                     sendToRenderer('update-status', 'Live session connected');
@@ -240,7 +240,12 @@ async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'int
                         currentTranscription += message.serverContent.inputTranscription.text;
                     }
 
-                    // Handle AI model response
+                    // Handle AI model response - get text from output transcription (audio model)
+                    if (message.serverContent?.outputTranscription?.text) {
+                        messageBuffer += message.serverContent.outputTranscription.text;
+                    }
+
+                    // Fallback: Handle text parts if available (for compatibility)
                     if (message.serverContent?.modelTurn?.parts) {
                         for (const part of message.serverContent.modelTurn.parts) {
                             console.log(part);
@@ -316,7 +321,8 @@ async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'int
                 },
             },
             config: {
-                responseModalities: ['TEXT'],
+                responseModalities: ['AUDIO'],
+                outputAudioTranscription: {},
                 tools: enabledTools,
                 inputAudioTranscription: {},
                 contextWindowCompression: { slidingWindow: {} },

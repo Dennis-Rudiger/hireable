@@ -12,7 +12,7 @@ const { GoogleGenAI } = require('@google/genai');
   const ai = new GoogleGenAI({ apiKey });
   try {
     const session = await ai.live.connect({
-      model: 'gemini-live-2.5-flash-preview',
+      model: 'gemini-2.5-flash-native-audio-preview-12-2025',
       callbacks: {
         onopen: () => console.log('Live session connected OK'),
         onerror: (e) => console.error('Live session error:', e?.message || e),
