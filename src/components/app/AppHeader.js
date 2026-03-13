@@ -131,9 +131,6 @@ export class AppHeader extends LitElement {
         onBackClick: { type: Function },
         onHideToggleClick: { type: Function },
         isClickThrough: { type: Boolean, reflect: true },
-        advancedMode: { type: Boolean },
-        onAdvancedClick: { type: Function },
-        contentProtection: { type: Boolean },
     };
 
     constructor() {
@@ -148,22 +145,12 @@ export class AppHeader extends LitElement {
         this.onBackClick = () => {};
         this.onHideToggleClick = () => {};
         this.isClickThrough = false;
-        this.advancedMode = false;
-        this.onAdvancedClick = () => {};
         this._timerInterval = null;
-        this.contentProtection = true;
     }
 
     connectedCallback() {
         super.connectedCallback();
         this._startTimer();
-        // Initialize content protection state from localStorage
-        try {
-            const stored = localStorage.getItem('contentProtection');
-            if (stored !== null) this.contentProtection = stored === 'true';
-        } catch (e) {
-            // ignore storage read errors
-        }
     }
 
     disconnectedCallback() {
@@ -220,7 +207,6 @@ export class AppHeader extends LitElement {
             customize: 'Customize',
             help: 'Help & Shortcuts',
             history: 'Conversation History',
-            advanced: 'Advanced Tools',
             assistant: 'Hireable',
         };
     return titles[this.currentView] || 'Hireable';
@@ -235,7 +221,7 @@ export class AppHeader extends LitElement {
     }
 
     isNavigationView() {
-        const navigationViews = ['customize', 'help', 'history', 'advanced'];
+        const navigationViews = ['customize', 'help', 'history'];
         return navigationViews.includes(this.currentView);
     }
 
