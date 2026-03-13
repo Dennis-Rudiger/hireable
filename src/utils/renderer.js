@@ -249,10 +249,28 @@ async function startCapture(screenshotIntervalSeconds = 5, imageQuality = 'mediu
                 },
             });
 
-            console.log('Windows capture started with loopback audio');
+            // Try to get microphone input as well
+            let micStream = null;
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        sampleRate: SAMPLE_RATE,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                    },
+                    video: false,
+                });
+                console.log('Windows microphone capture started');
+            } catch (micError) {
+                console.warn('Failed to get microphone access on Windows:', micError);
+            }
 
-            // Setup audio processing for Windows loopback audio only
-            setupWindowsLoopbackProcessing();
+            console.log('Windows capture started with loopback audio + mic');
+
+            // Setup audio processing for Windows loopback audio + mic
+            setupWindowsAudioProcessing(micStream);
         }
 
         console.log('MediaStream obtained:', {
@@ -387,22 +405,35 @@ function stopMicOnlyCapture() {
     }
 }
 
-function setupWindowsLoopbackProcessing() {
-    // Setup audio processing for Windows loopback audio only
+function setupWindowsAudioProcessing(micStream = null) {
+    // Setup audio processing for Windows loopback + mic
     audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
-    const source = audioContext.createMediaStreamSource(mediaStream);
     audioProcessor = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
 
-    let audioBuffer = [];
+    // Create system audio source if available
+    if (mediaStream.getAudioTracks().length > 0) {
+        console.log('Connecting system audio loopback source');
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        source.connect(audioProcessor);
+    }
+
+    // Create microphone source if available
+    if (micStream && micStream.getAudioTracks().length > 0) {
+        console.log('Connecting microphone source');
+        const micSource = audioContext.createMediaStreamSource(micStream);
+        micSource.connect(audioProcessor);
+    }
+
+    let audioBufferData = [];
     const samplesPerChunk = SAMPLE_RATE * AUDIO_CHUNK_DURATION;
 
     audioProcessor.onaudioprocess = async e => {
         const inputData = e.inputBuffer.getChannelData(0);
-        audioBuffer.push(...inputData);
+        audioBufferData.push(...inputData);
 
         // Process audio in chunks
-        while (audioBuffer.length >= samplesPerChunk) {
-            const chunk = audioBuffer.splice(0, samplesPerChunk);
+        while (audioBufferData.length >= samplesPerChunk) {
+            const chunk = audioBufferData.splice(0, samplesPerChunk);
             const pcmData16 = convertFloat32ToInt16(chunk);
             const base64Data = arrayBufferToBase64(pcmData16.buffer);
 
@@ -413,7 +444,6 @@ function setupWindowsLoopbackProcessing() {
         }
     };
 
-    source.connect(audioProcessor);
     audioProcessor.connect(audioContext.destination);
 }
 

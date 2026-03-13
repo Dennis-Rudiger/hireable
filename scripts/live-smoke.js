@@ -23,6 +23,7 @@ const { GoogleGenAI } = require('@google/genai');
           }
           if (m?.serverContent?.modelTurn?.parts) {
             for (const p of m.serverContent.modelTurn.parts) {
+              if (p.thought) continue; // Skip thought parts
               if (p.text) process.stdout.write(`[out] ${p.text}`);
             }
           }

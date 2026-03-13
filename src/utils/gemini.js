@@ -245,10 +245,16 @@ async function initializeGeminiSession(apiKey, customPrompt = '', profile = 'int
                         messageBuffer += message.serverContent.outputTranscription.text;
                     }
 
-                    // Fallback: Handle text parts if available (for compatibility)
+                    // Fallback: Handle text parts if available (compatibility)
                     if (message.serverContent?.modelTurn?.parts) {
                         for (const part of message.serverContent.modelTurn.parts) {
-                            console.log(part);
+                            // console.log(part); // Reduced logging
+                            
+                            // Skip thought parts if present
+                            if (part.thought) {
+                                continue;
+                            }
+
                             if (part.text) {
                                 messageBuffer += part.text;
                             }
