@@ -42,13 +42,18 @@ module.exports = {
         {
             name: '@electron-forge/maker-squirrel',
             config: {
-                name: 'hireable',
+                name: 'Hireable',
                 productName: 'Hireable',
                 shortcutName: 'Hireable',
+                authors: 'Dennis-Rudiger',
                 createDesktopShortcut: true,
                 createStartMenuShortcut: true,
                 setupIcon: 'src/assets/logo.ico',
             },
+        },
+        {
+            name: '@electron-forge/maker-zip',
+            platforms: ['win32'],
         },
         {
             name: '@electron-forge/maker-dmg',
